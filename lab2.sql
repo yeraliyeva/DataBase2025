@@ -1,49 +1,32 @@
-
--- Task 1.1: Database Creation with Parameters
-
--- 1. Create database university_main
 CREATE DATABASE university_main
-WITH OWNER = 'postgres'
-TEMPLATE template0
-ENCODING 'UTF8';
+    WITH
+    OWNER = CURRENT_USER
+    TEMPLATE = template0
+    ENCODING = 'UTF8';
 
--- 2. Create database university_archive
 CREATE DATABASE university_archive
-WITH 
+    WITH
     CONNECTION LIMIT = 50
     TEMPLATE = template0;
 
--- 3. Create database university_test
 CREATE DATABASE university_test
-WITH 
+    WITH
     CONNECTION LIMIT = 10
     IS_TEMPLATE = true;
 
-
--- Task 1.2: Tablespace Operations
--- 1. Create tablespace student_data
 CREATE TABLESPACE student_data
-LOCATION '/usr/local/pgsql_tablespaces/students';
+    LOCATION '/Users/yeraliyeva/pg_tablespaces/students';
 
 CREATE TABLESPACE course_data
-LOCATION '/usr/local/pgsql_tablespaces/courses';
-OWNER CURRENT_USER;
+    OWNER CURRENT_USER
+    LOCATION '/Users/yeraliyeva/pg_tablespaces/courses';
 
--- 3. Create database university_distributed
 CREATE DATABASE university_distributed
-TABLESPACE = student_data
-ENCODING = 'LATIN9';
+    TABLESPACE = student_data
+    ENCODING = 'LATIN9';
 
--- =============================================
--- Part 2: Complex Table Creation
--- =============================================
 
--- Подключаемся к university_main перед выполнением этой части
--- \c university_main (в DataGrip - переключиться на базу вручную)
 
--- Task 2.1: University Management System
-
--- Table: students
 CREATE TABLE students (
     student_id SERIAL PRIMARY KEY,
     first_name VARCHAR(50) NOT NULL,
@@ -57,7 +40,6 @@ CREATE TABLE students (
     graduation_year SMALLINT
 );
 
--- Table: professors
 CREATE TABLE professors (
     professor_id SERIAL PRIMARY KEY,
     first_name VARCHAR(50) NOT NULL,
@@ -70,7 +52,6 @@ CREATE TABLE professors (
     years_experience INTEGER
 );
 
--- Table: courses
 CREATE TABLE courses (
     course_id SERIAL PRIMARY KEY,
     course_code CHAR(8) NOT NULL,
@@ -83,9 +64,6 @@ CREATE TABLE courses (
     created_at TIMESTAMP
 );
 
--- Task 2.2: Time-based and Specialized Tables
-
--- Table: class_schedule
 CREATE TABLE class_schedule (
     schedule_id SERIAL PRIMARY KEY,
     course_id INTEGER,
@@ -97,7 +75,6 @@ CREATE TABLE class_schedule (
     duration INTERVAL
 );
 
--- Table: student_records
 CREATE TABLE student_records (
     record_id SERIAL PRIMARY KEY,
     student_id INTEGER,
@@ -105,106 +82,41 @@ CREATE TABLE student_records (
     semester VARCHAR(20),
     year INTEGER,
     grade CHAR(2),
-    attendance_percentage DECIMAL(3,1),
+    attendance_percentage DECIMAL(4,1),
     submission_timestamp TIMESTAMPTZ,
     last_updated TIMESTAMPTZ
 );
 
--- =============================================
--- Part 3: Advanced ALTER TABLE Operations
--- =============================================
+ALTER TABLE students ADD COLUMN middle_name VARCHAR(30);
+ALTER TABLE students ADD COLUMN student_status VARCHAR(20);
+ALTER TABLE students ALTER COLUMN phone TYPE VARCHAR(20);
+ALTER TABLE students ALTER COLUMN student_status SET DEFAULT 'ACTIVE';
+ALTER TABLE students ALTER COLUMN gpa SET DEFAULT 0.00;
 
--- Task 3.1: Modifying Existing Tables
+ALTER TABLE professors ADD COLUMN department_code CHAR(5);
+ALTER TABLE professors ADD COLUMN research_area TEXT;
+ALTER TABLE professors ALTER COLUMN years_experience TYPE SMALLINT;
+ALTER TABLE professors ALTER COLUMN is_tenured SET DEFAULT false;
+ALTER TABLE professors ADD COLUMN last_promotion_date DATE;
 
--- Modify students table
-ALTER TABLE students 
-ADD COLUMN middle_name VARCHAR(30);
+ALTER TABLE courses ADD COLUMN prerequisite_course_id INTEGER;
+ALTER TABLE courses ADD COLUMN difficulty_level SMALLINT;
+ALTER TABLE courses ALTER COLUMN course_code TYPE VARCHAR(10);
+ALTER TABLE courses ALTER COLUMN credits SET DEFAULT 3;
+ALTER TABLE courses ADD COLUMN lab_required BOOLEAN DEFAULT false;
 
-ALTER TABLE students 
-ADD COLUMN student_status VARCHAR(20);
+ALTER TABLE class_schedule ADD COLUMN room_capacity INTEGER;
+ALTER TABLE class_schedule DROP COLUMN duration;
+ALTER TABLE class_schedule ADD COLUMN session_type VARCHAR(15);
+ALTER TABLE class_schedule ALTER COLUMN classroom TYPE VARCHAR(30);
+ALTER TABLE class_schedule ADD COLUMN equipment_needed TEXT;
 
-ALTER TABLE students 
-ALTER COLUMN phone TYPE VARCHAR(20);
+ALTER TABLE student_records ADD COLUMN extra_credit_points DECIMAL(3,1);
+ALTER TABLE student_records ALTER COLUMN grade TYPE VARCHAR(5);
+ALTER TABLE student_records ALTER COLUMN extra_credit_points SET DEFAULT 0.0;
+ALTER TABLE student_records ADD COLUMN final_exam_date DATE;
+ALTER TABLE student_records DROP COLUMN last_updated;
 
-ALTER TABLE students 
-ALTER COLUMN student_status SET DEFAULT 'ACTIVE';
-
-ALTER TABLE students 
-ALTER COLUMN gpa SET DEFAULT 0.00;
-
--- Modify professors table
-ALTER TABLE professors 
-ADD COLUMN department_code CHAR(5);
-
-ALTER TABLE professors 
-ADD COLUMN research_area TEXT;
-
-ALTER TABLE professors 
-ALTER COLUMN years_experience TYPE SMALLINT;
-
-ALTER TABLE professors 
-ALTER COLUMN is_tenured SET DEFAULT false;
-
-ALTER TABLE professors 
-ADD COLUMN last_promotion_date DATE;
-
--- Modify courses table
-ALTER TABLE courses 
-ADD COLUMN prerequisite_course_id INTEGER;
-
-ALTER TABLE courses 
-ADD COLUMN difficulty_level SMALLINT;
-
-ALTER TABLE courses 
-ALTER COLUMN course_code TYPE VARCHAR(10);
-
-ALTER TABLE courses 
-ALTER COLUMN credits SET DEFAULT 3;
-
-ALTER TABLE courses 
-ADD COLUMN lab_required BOOLEAN DEFAULT false;
-
--- Task 3.2: Column Management Operations
-
--- For class_schedule table
-ALTER TABLE class_schedule 
-ADD COLUMN room_capacity INTEGER;
-
-ALTER TABLE class_schedule 
-DROP COLUMN duration;
-
-ALTER TABLE class_schedule 
-ADD COLUMN session_type VARCHAR(15);
-
-ALTER TABLE class_schedule 
-ALTER COLUMN classroom TYPE VARCHAR(30);
-
-ALTER TABLE class_schedule 
-ADD COLUMN equipment_needed TEXT;
-
--- For student_records table
-ALTER TABLE student_records 
-ADD COLUMN extra_credit_points DECIMAL(3,1);
-
-ALTER TABLE student_records 
-ALTER COLUMN grade TYPE VARCHAR(5);
-
-ALTER TABLE student_records 
-ALTER COLUMN extra_credit_points SET DEFAULT 0.0;
-
-ALTER TABLE student_records 
-ADD COLUMN final_exam_date DATE;
-
-ALTER TABLE student_records 
-DROP COLUMN last_updated;
-
--- =============================================
--- Part 4: Table Relationships and Management
--- =============================================
-
--- Task 4.1: Additional Supporting Tables
-
--- Table: departments
 CREATE TABLE departments (
     department_id SERIAL PRIMARY KEY,
     department_name VARCHAR(100) NOT NULL,
@@ -215,7 +127,6 @@ CREATE TABLE departments (
     established_year INTEGER
 );
 
--- Table: library_books
 CREATE TABLE library_books (
     book_id SERIAL PRIMARY KEY,
     isbn CHAR(13) NOT NULL,
@@ -227,8 +138,6 @@ CREATE TABLE library_books (
     is_available BOOLEAN,
     acquisition_timestamp TIMESTAMP
 );
-
--- Table: student_book_loans
 CREATE TABLE student_book_loans (
     loan_id SERIAL PRIMARY KEY,
     student_id INTEGER,
@@ -240,21 +149,10 @@ CREATE TABLE student_book_loans (
     loan_status VARCHAR(20)
 );
 
--- Task 4.2: Table Modifications for Integration
+ALTER TABLE professors ADD COLUMN department_id INTEGER;
+ALTER TABLE students ADD COLUMN advisor_id INTEGER;
+ALTER TABLE courses ADD COLUMN department_id INTEGER;
 
--- Add foreign key columns
-ALTER TABLE professors 
-ADD COLUMN department_id INTEGER;
-
-ALTER TABLE students 
-ADD COLUMN advisor_id INTEGER;
-
-ALTER TABLE courses 
-ADD COLUMN department_id INTEGER;
-
--- Create lookup tables
-
--- Table: grade_scale
 CREATE TABLE grade_scale (
     grade_id SERIAL PRIMARY KEY,
     letter_grade CHAR(2) NOT NULL,
@@ -263,7 +161,6 @@ CREATE TABLE grade_scale (
     gpa_points DECIMAL(3,2)
 );
 
--- Table: semester_calendar
 CREATE TABLE semester_calendar (
     semester_id SERIAL PRIMARY KEY,
     semester_name VARCHAR(20) NOT NULL,
@@ -274,18 +171,10 @@ CREATE TABLE semester_calendar (
     is_current BOOLEAN
 );
 
--- =============================================
--- Part 5: Table Deletion and Cleanup
--- =============================================
-
--- Task 5.1: Conditional Table Operations
-
--- Drop tables if they exist
 DROP TABLE IF EXISTS student_book_loans;
 DROP TABLE IF EXISTS library_books;
 DROP TABLE IF EXISTS grade_scale;
 
--- Recreate grade_scale table with additional column
 CREATE TABLE grade_scale (
     grade_id SERIAL PRIMARY KEY,
     letter_grade CHAR(2) NOT NULL,
@@ -295,7 +184,6 @@ CREATE TABLE grade_scale (
     description TEXT
 );
 
--- Drop and recreate with CASCADE
 DROP TABLE IF EXISTS semester_calendar CASCADE;
 
 CREATE TABLE semester_calendar (
@@ -308,12 +196,7 @@ CREATE TABLE semester_calendar (
     is_current BOOLEAN
 );
 
--- Task 5.2: Database Cleanup
-
--- Drop databases if they exist
 DROP DATABASE IF EXISTS university_test;
 DROP DATABASE IF EXISTS university_distributed;
 
--- Create new database university_backup using university_main as template
-CREATE DATABASE university_backup 
-TEMPLATE university_main;
+CREATE DATABASE university_backup TEMPLATE university_main;
